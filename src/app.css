@@ -1,0 +1,24 @@
+:root {
+    --primary-bg-color: #000000;
+    --text-color: #ffffff;
+    --loader-ring-color: #444;
+    --progress-bar-bg-color: #444;
+    --button-active-bg-color: #ffffff;
+    --button-active-text-color: #000000;
+    --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--primary-bg-color);
+    color: var(--text-color);
+    font-family: var(--font-family);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
