@@ -1,18 +1,22 @@
 {
-  "name": "Waifu Randomizer",
-  "version": "1.0.0",
-  "description": "A web application that fetches and displays random 'waifu' images from an external API, featuring SFW/NSFW categories, loading indicators, and a fullscreen image viewer with zoom and pan.",
-  "main": "server.js",
-  "scripts": {
-    "start": "vite",
-    "build": "vite build"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^6.2.1",
-    "svelte": "^5.46.0",
-    "vite": "^7.3.0"
-  }
+	"name": "Waifu Randomizer",
+	"version": "1.0.0",
+	"description": "A web application that fetches and displays random 'waifu' images from an external API, featuring SFW/NSFW categories, loading indicators, and a fullscreen image viewer with zoom and pan.",
+	"type": "module",
+	"main": "server.js",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.49.2",
+		"@sveltejs/vite-plugin-svelte": "^6.2.1",
+		"svelte": "^5.46.0",
+		"vite": "^7.3.0"
+	}
 }

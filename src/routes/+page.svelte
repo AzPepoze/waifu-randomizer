@@ -4,7 +4,7 @@
 	let category = $state("sfw");
 	let selectedApi = $state("waifu.pics");
 	let activeBg = $state(1);
-	let activeImage = $state(1); // 1 or 2
+	let activeImage = $state(1);
 	let isLoading = $state(false);
 	let isFirstLoad = $state(true);
 	let progress = $state(0);
@@ -204,7 +204,9 @@
 		updateBgAndFinalize(e.target.src);
 	}
 
-	function onImageError() {
+	function onImageError(e) {
+        const src = e.target.getAttribute('src');
+        if (!src || src === '') return;
 		handleError("Failed to display image.");
 	}
 
