@@ -48,12 +48,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-	id="image-container"
-	bind:this={imageContainerEl}
-	style="height: {imageContainerHeight}"
-	onclick={onOpenModal}
->
+<div id="image-container" bind:this={imageContainerEl} style="height: {imageContainerHeight}" onclick={onOpenModal}>
 	{#if isLoading}
 		<div id="loading-wrapper" style="display: flex; opacity: 1;">
 			<div id="loader"></div>

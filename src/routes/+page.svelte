@@ -206,8 +206,8 @@
 	}
 
 	function onImageError(e) {
-        const src = e.target.getAttribute('src');
-        if (!src || src === '') return;
+		const src = e.target.getAttribute("src");
+		if (!src || src === "") return;
 		handleError("Failed to display image.");
 	}
 
@@ -355,35 +355,35 @@
 <div id="main-content">
 	<h1>Waifu Randomizer</h1>
 	<WaifuViewer
-		bgImage1Url={bgImage1Url}
-		bgImage2Url={bgImage2Url}
-		bgImage1Opacity={bgImage1Opacity}
-		bgImage2Opacity={bgImage2Opacity}
-		imageContainerHeight={imageContainerHeight}
-		isLoading={isLoading}
-		progress={progress}
-		errorMessage={errorMessage}
-		image1Url={image1Url}
-		image2Url={image2Url}
-		image1Opacity={image1Opacity}
-		image2Opacity={image2Opacity}
-		image1Dimmed={image1Dimmed}
-		image2Dimmed={image2Dimmed}
-		activeImage={activeImage}
-		modalOpen={modalOpen}
-		currentImageUrl={currentImageUrl}
-		scale={scale}
-		translateX={translateX}
-		translateY={translateY}
-		isDragging={isDragging}
+		{bgImage1Url}
+		{bgImage2Url}
+		{bgImage1Opacity}
+		{bgImage2Opacity}
+		{imageContainerHeight}
+		{isLoading}
+		{progress}
+		{errorMessage}
+		{image1Url}
+		{image2Url}
+		{image1Opacity}
+		{image2Opacity}
+		{image1Dimmed}
+		{image2Dimmed}
+		{activeImage}
+		{modalOpen}
+		{currentImageUrl}
+		{scale}
+		{translateX}
+		{translateY}
+		{isDragging}
 		onOpenModal={openModal}
 		onCloseModal={closeModal}
-		onImageLoad={onImageLoad}
-		onImageError={onImageError}
-		onModalWheel={onModalWheel}
-		onModalMouseDown={onModalMouseDown}
-		onModalMouseUp={onModalMouseUp}
-		onModalMouseMove={onModalMouseMove}
+		{onImageLoad}
+		{onImageError}
+		{onModalWheel}
+		{onModalMouseDown}
+		{onModalMouseUp}
+		{onModalMouseMove}
 		bind:imageContainerEl={imageContainer}
 	/>
 
@@ -447,7 +447,6 @@
 		flex-shrink: 0;
 	}
 
-
 	#controls {
 		display: flex;
 		flex-direction: column;
@@ -491,5 +490,4 @@
 		font-weight: bold;
 		border-radius: 10px;
 	}
-
 </style>
