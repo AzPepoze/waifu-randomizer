@@ -352,6 +352,29 @@
 	});
 </script>
 
+<svelte:head>
+	<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "WebApplication",
+			"name": "Waifu Randomizer",
+			"url": "https://waifu-randomizer.azpepoze.com/",
+			"description": "A web application to browse random anime and waifu images from multiple sources.",
+			"applicationCategory": "EntertainmentApplication",
+			"operatingSystem": "Any",
+			"author": {
+				"@type": "Person",
+				"name": "AzPepoze"
+			},
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD"
+			}
+		}
+	</script>
+</svelte:head>
+
 <div id="main-content">
 	<h1>Waifu Randomizer</h1>
 	<WaifuViewer
