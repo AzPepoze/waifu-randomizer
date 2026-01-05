@@ -113,7 +113,7 @@
 
 	async function fetchImageFromKonachan(cat) {
 		const tags = cat === "sfw" ? "rating:s" : "rating:e";
-		const url = `https://konachan.com/post.json?limit=1&tags=order:random+${tags}`;
+		const url = `https://konachan.net/post.json?limit=1&tags=order:random+${tags}`;
 		const proxiedUrl = wrapWithProxy(url);
 		const response = await fetch(proxiedUrl);
 		if (!response.ok) throw new Error(`Konachan API error: ${response.status}`);
