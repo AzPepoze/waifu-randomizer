@@ -47,7 +47,7 @@
 		"waifu.im": { sfw: true, nsfw: true },
 		"nekos.best": { sfw: true, nsfw: false },
 		"danbooru.anime": { sfw: true, nsfw: true },
-		"konachan": { sfw: true, nsfw: true },
+		konachan: { sfw: true, nsfw: true },
 	};
 
 	function isApiSupported(api, cat) {
@@ -56,7 +56,7 @@
 
 	function wrapWithProxy(url) {
 		if (!url) return "";
-		return `https://proxy.azpepoze.com?url=${encodeURIComponent(url)}`;
+		return `https://proxy.azpepoze.com/?url=${encodeURIComponent(url)}`;
 	}
 
 	function updateApiButtonStates() {
@@ -359,7 +359,8 @@
 
 		const handleResize = () => {
 			// Trigger re-calc of height on window resize
-			const activeImg = activeImage === 1 ? document.getElementById("image-1") : document.getElementById("image-2");
+			const activeImg =
+				activeImage === 1 ? document.getElementById("image-1") : document.getElementById("image-2");
 			if (activeImg && activeImg.complete) {
 				updateImageContainerHeight(activeImg);
 			}
@@ -396,6 +397,126 @@
 		}
 	</script>
 </svelte:head>
+
+<div id="main-content">
+	<div class="random-zone">
+		<h1>Waifu Randomizer</h1>
+		<WaifuViewer
+			{bgImage1Url}
+			{bgImage2Url}
+			{bgImage1Opacity}
+			{bgImage2Opacity}
+			{imageContainerHeight}
+			{isLoading}
+			{progress}
+			{errorMessage}
+			{image1Url}
+			{image2Url}
+			{image1Opacity}
+			{image2Opacity}
+			{image1Dimmed}
+			{image2Dimmed}
+			{activeImage}
+			{modalOpen}
+			{currentImageUrl}
+			{scale}
+			{translateX}
+			{translateY}
+			{isDragging}
+			onOpenModal={openModal}
+			onCloseModal={closeModal}
+			{onImageLoad}
+			{onImageError}
+			{onModalWheel}
+			{onModalMouseDown}
+			{onModalMouseUp}
+			{onModalMouseMove}
+			bind:imageContainerEl={imageContainer}
+		/>
+
+		<div id="controls">
+			<div id="api-selector">
+				<button
+					class="control-button category-button {selectedApi === 'waifu.pics' ? 'active' : ''}"
+					disabled={!isApiSupported("waifu.pics", category) || isLoading}
+					onclick={() => handleApiChange("waifu.pics")}>Waifu.pics</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'waifu.im' ? 'active' : ''}"
+					disabled={!isApiSupported("waifu.im", category) || isLoading}
+					onclick={() => handleApiChange("waifu.im")}>Waifu.im</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'nekos.best' ? 'active' : ''}"
+					disabled={!isApiSupported("nekos.best", category) || isLoading}
+					onclick={() => handleApiChange("nekos.best")}>Nekos.best</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'danbooru.anime' ? 'active' : ''}"
+					disabled={!isApiSupported("danbooru.anime", category) || isLoading}
+					onclick={() => handleApiChange("danbooru.anime")}>Danbooru Anime</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'konachan' ? 'active' : ''}"
+					disabled={!isApiSupported("konachan", category) || isLoading}
+					onclick={() => handleApiChange("konachan")}>Konachan</button
+				>
+			</div>
+			<div id="category-selector">
+				<button
+					class="control-button category-button {category === 'sfw' ? 'active' : ''}"
+					disabled={isLoading}
+					onclick={() => handleCategoryChange("sfw")}>SFW</button
+				>
+				<button
+					class="control-button category-button {category === 'nsfw' ? 'active' : ''}"
+					disabled={isLoading}
+					onclick={() => handleCategoryChange("nsfw")}>NSFW</button
+				>
+			</div>
+			<button id="randomize-button" class="control-button" disabled={isLoading} onclick={fetchWaifuImage}
+				>Random</button
+			>
+		</div>
+
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="scroll-hint" onclick={() => document.getElementById("about-section").scrollIntoView()}>
+			Scroll down to learn more
+			<br />
+			↓
+		</div>
+	</div>
+
+	<section id="about-section">
+		<h2>About This Project</h2>
+		<p>
+			<strong>Waifu Randomizer</strong> is a simple yet elegant web application designed for anime enthusiasts.
+			It allows users to discover and browse random high-quality anime and waifu images from various popular API
+			sources.
+		</p>
+
+		<p>
+			Whether you're looking for a new wallpaper or just want to see some beautiful artwork, Waifu Randomizer
+			provides a seamless experience with features like:
+		</p>
+		<ul>
+			<li>Multiple API support (Waifu.pics, Waifu.im, Nekos.best, Danbooru, Konachan).</li>
+			<li>SFW and NSFW content filtering.</li>
+			<li>Interactive full-screen viewer with zoom and pan capabilities.</li>
+			<li>Dynamic blurred background that adapts to the current image.</li>
+		</ul>
+
+		<p>
+			Built with <strong>SvelteKit</strong>, this project focuses on performance and a clean user interface.
+			All images are provided by the respective APIs and are subject to their terms and conditions.
+		</p>
+
+		<p style="margin-top: 30px; text-align: center; font-size: 0.9em; opacity: 0.6;">
+			Created with ❤️ by AzPepoze
+		</p>
+	</section>
+</div>
 
 <style>
 	#main-content {
@@ -546,124 +667,3 @@
 		}
 	}
 </style>
-
-<div id="main-content">
-	<div class="random-zone">
-		<h1>Waifu Randomizer</h1>
-		<WaifuViewer
-			{bgImage1Url}
-			{bgImage2Url}
-			{bgImage1Opacity}
-			{bgImage2Opacity}
-			{imageContainerHeight}
-			{isLoading}
-			{progress}
-			{errorMessage}
-			{image1Url}
-			{image2Url}
-			{image1Opacity}
-			{image2Opacity}
-			{image1Dimmed}
-			{image2Dimmed}
-			{activeImage}
-			{modalOpen}
-			{currentImageUrl}
-			{scale}
-			{translateX}
-			{translateY}
-			{isDragging}
-			onOpenModal={openModal}
-			onCloseModal={closeModal}
-			{onImageLoad}
-			{onImageError}
-			{onModalWheel}
-			{onModalMouseDown}
-			{onModalMouseUp}
-			{onModalMouseMove}
-			bind:imageContainerEl={imageContainer}
-		/>
-
-		<div id="controls">
-			<div id="api-selector">
-				<button
-					class="control-button category-button {selectedApi === 'waifu.pics' ? 'active' : ''}"
-					disabled={!isApiSupported("waifu.pics", category) || isLoading}
-					onclick={() => handleApiChange("waifu.pics")}>Waifu.pics</button
-				>
-				<button
-					class="control-button category-button {selectedApi === 'waifu.im' ? 'active' : ''}"
-					disabled={!isApiSupported("waifu.im", category) || isLoading}
-					onclick={() => handleApiChange("waifu.im")}>Waifu.im</button
-				>
-				<button
-					class="control-button category-button {selectedApi === 'nekos.best' ? 'active' : ''}"
-					disabled={!isApiSupported("nekos.best", category) || isLoading}
-					onclick={() => handleApiChange("nekos.best")}>Nekos.best</button
-				>
-				<button
-					class="control-button category-button {selectedApi === 'danbooru.anime' ? 'active' : ''}"
-					disabled={!isApiSupported("danbooru.anime", category) || isLoading}
-					onclick={() => handleApiChange("danbooru.anime")}>Danbooru Anime</button
-				>
-				<button
-					class="control-button category-button {selectedApi === 'konachan' ? 'active' : ''}"
-					disabled={!isApiSupported("konachan", category) || isLoading}
-					onclick={() => handleApiChange("konachan")}>Konachan</button
-				>
-			</div>
-			<div id="category-selector">
-				<button
-					class="control-button category-button {category === 'sfw' ? 'active' : ''}"
-					disabled={isLoading}
-					onclick={() => handleCategoryChange("sfw")}>SFW</button
-				>
-				<button
-					class="control-button category-button {category === 'nsfw' ? 'active' : ''}"
-					disabled={isLoading}
-					onclick={() => handleCategoryChange("nsfw")}>NSFW</button
-				>
-			</div>
-			<button id="randomize-button" class="control-button" disabled={isLoading} onclick={fetchWaifuImage}
-				>Random</button
-			>
-		</div>
-
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div class="scroll-hint" onclick={() => document.getElementById('about-section').scrollIntoView()}>
-			Scroll down to learn more
-			<br />
-			↓
-		</div>
-	</div>
-
-	<section id="about-section">
-		<h2>About This Project</h2>
-		<p>
-			<strong>Waifu Randomizer</strong> is a simple yet elegant web application designed for anime enthusiasts.
-			It allows users to discover and browse random high-quality anime and waifu images from various popular
-			API sources.
-		</p>
-
-		<p>
-			Whether you're looking for a new wallpaper or just want to see some beautiful artwork, Waifu Randomizer
-			provides a seamless experience with features like:
-		</p>
-		<ul>
-			<li>Multiple API support (Waifu.pics, Waifu.im, Nekos.best, Danbooru, Konachan).</li>
-			<li>SFW and NSFW content filtering.</li>
-			<li>Interactive full-screen viewer with zoom and pan capabilities.</li>
-			<li>Dynamic blurred background that adapts to the current image.</li>
-		</ul>
-
-		<p>
-			Built with <strong>SvelteKit</strong>, this project focuses on performance
-			and a clean user interface. All images are provided by the respective APIs and are subject to their
-			terms and conditions.
-		</p>
-
-		<p style="margin-top: 30px; text-align: center; font-size: 0.9em; opacity: 0.6;">
-			Created with ❤️ by AzPepoze
-		</p>
-	</section>
-</div>
