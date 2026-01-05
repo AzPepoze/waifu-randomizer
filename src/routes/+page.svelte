@@ -168,8 +168,7 @@
 				throw new Error("Invalid API selected.");
 			}
 
-			// Apply Proxy
-			currentImageUrl = wrapWithProxy(imageUrl);
+			currentImageUrl = imageUrl;
 
 			// Preload
 			const img = new Image();
@@ -655,7 +654,6 @@
 			<li>SFW and NSFW content filtering.</li>
 			<li>Interactive full-screen viewer with zoom and pan capabilities.</li>
 			<li>Dynamic blurred background that adapts to the current image.</li>
-			<li>Custom image proxy for improved privacy and reliability.</li>
 		</ul>
 
 		<p>
