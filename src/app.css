@@ -8,17 +8,20 @@
     --font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     background-color: var(--primary-bg-color);
     color: var(--text-color);
     font-family: var(--font-family);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    padding: 20px;
+    padding: 0 20px;
     box-sizing: border-box;
     overflow-x: hidden;
 }

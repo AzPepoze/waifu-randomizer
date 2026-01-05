@@ -47,10 +47,16 @@
 		"waifu.im": { sfw: true, nsfw: true },
 		"nekos.best": { sfw: true, nsfw: false },
 		"danbooru.anime": { sfw: true, nsfw: true },
+		"konachan": { sfw: true, nsfw: true },
 	};
 
 	function isApiSupported(api, cat) {
 		return apiSupport[api] && apiSupport[api][cat];
+	}
+
+	function wrapWithProxy(url) {
+		if (!url) return "";
+		return `https://proxy.azpepoze.com?url=${encodeURIComponent(url)}`;
 	}
 
 	function updateApiButtonStates() {
@@ -105,6 +111,19 @@
 		return data[0].file_url;
 	}
 
+	async function fetchImageFromKonachan(cat) {
+		const tags = cat === "sfw" ? "rating:s" : "rating:e";
+		const url = `https://konachan.com/post.json?limit=1&tags=order:random+${tags}`;
+		const proxiedUrl = wrapWithProxy(url);
+		const response = await fetch(proxiedUrl);
+		if (!response.ok) throw new Error(`Konachan API error: ${response.status}`);
+		const data = await response.json();
+		if (!data || data.length === 0 || !data[0].file_url) {
+			throw new Error("No image found from Konachan API");
+		}
+		return data[0].file_url;
+	}
+
 	async function fetchWaifuImage() {
 		if (isLoading) return;
 		isLoading = true;
@@ -143,15 +162,18 @@
 				imageUrl = await Promise.race([fetchImageFromNekosBest(category), timeout]);
 			} else if (selectedApi === "danbooru.anime") {
 				imageUrl = await Promise.race([fetchImageFromDanbooruAnime(category), timeout]);
+			} else if (selectedApi === "konachan") {
+				imageUrl = await Promise.race([fetchImageFromKonachan(category), timeout]);
 			} else {
 				throw new Error("Invalid API selected.");
 			}
 
-			currentImageUrl = imageUrl;
+			// Apply Proxy
+			currentImageUrl = wrapWithProxy(imageUrl);
 
 			// Preload
 			const img = new Image();
-			img.src = imageUrl;
+			img.src = currentImageUrl;
 
 			img.onload = () => {
 				if (progressInterval) clearInterval(progressInterval);
@@ -247,10 +269,8 @@
 
 	function updateImageContainerHeight(imgElement) {
 		const containerWidth = imageContainer.clientWidth;
-		// const containerMaxHeight = parseFloat(window.getComputedStyle(imageContainer).maxHeight); // Can't easily get computed style of binding in script, assume logic
-		// Approximation or use binding to clientHeight if needed, but the original logic used computed style.
-		// Let's rely on standard logic.
-		const containerMaxHeight = window.innerHeight - 280;
+		// More space for the image in full-page mode
+		const containerMaxHeight = window.innerHeight - 220;
 
 		const imgNaturalWidth = imgElement.naturalWidth;
 		const imgNaturalHeight = imgElement.naturalHeight;
@@ -339,8 +359,11 @@
 		window.addEventListener("mousemove", onModalMouseMove);
 
 		const handleResize = () => {
-			// Re-calc height if needed
-			// Simplification: just auto for now or re-trigger if I kept ref to current img
+			// Trigger re-calc of height on window resize
+			const activeImg = activeImage === 1 ? document.getElementById("image-1") : document.getElementById("image-2");
+			if (activeImg && activeImg.complete) {
+				updateImageContainerHeight(activeImg);
+			}
 		};
 		window.addEventListener("resize", handleResize);
 
@@ -375,97 +398,31 @@
 	</script>
 </svelte:head>
 
-<div id="main-content">
-	<h1>Waifu Randomizer</h1>
-	<WaifuViewer
-		{bgImage1Url}
-		{bgImage2Url}
-		{bgImage1Opacity}
-		{bgImage2Opacity}
-		{imageContainerHeight}
-		{isLoading}
-		{progress}
-		{errorMessage}
-		{image1Url}
-		{image2Url}
-		{image1Opacity}
-		{image2Opacity}
-		{image1Dimmed}
-		{image2Dimmed}
-		{activeImage}
-		{modalOpen}
-		{currentImageUrl}
-		{scale}
-		{translateX}
-		{translateY}
-		{isDragging}
-		onOpenModal={openModal}
-		onCloseModal={closeModal}
-		{onImageLoad}
-		{onImageError}
-		{onModalWheel}
-		{onModalMouseDown}
-		{onModalMouseUp}
-		{onModalMouseMove}
-		bind:imageContainerEl={imageContainer}
-	/>
-
-	<div id="controls">
-		<div id="api-selector" style="display: flex; gap: 10px; margin-bottom: 15px">
-			<button
-				class="control-button category-button {selectedApi === 'waifu.pics' ? 'active' : ''}"
-				disabled={!isApiSupported("waifu.pics", category) || isLoading}
-				onclick={() => handleApiChange("waifu.pics")}>Waifu.pics</button
-			>
-			<button
-				class="control-button category-button {selectedApi === 'waifu.im' ? 'active' : ''}"
-				disabled={!isApiSupported("waifu.im", category) || isLoading}
-				onclick={() => handleApiChange("waifu.im")}>Waifu.im</button
-			>
-			<button
-				class="control-button category-button {selectedApi === 'nekos.best' ? 'active' : ''}"
-				disabled={!isApiSupported("nekos.best", category) || isLoading}
-				onclick={() => handleApiChange("nekos.best")}>Nekos.best</button
-			>
-			<button
-				class="control-button category-button {selectedApi === 'danbooru.anime' ? 'active' : ''}"
-				disabled={!isApiSupported("danbooru.anime", category) || isLoading}
-				onclick={() => handleApiChange("danbooru.anime")}>Danbooru Anime</button
-			>
-		</div>
-		<div id="category-selector">
-			<button
-				class="control-button category-button {category === 'sfw' ? 'active' : ''}"
-				disabled={isLoading}
-				onclick={() => handleCategoryChange("sfw")}>SFW</button
-			>
-			<button
-				class="control-button category-button {category === 'nsfw' ? 'active' : ''}"
-				disabled={isLoading}
-				onclick={() => handleCategoryChange("nsfw")}>NSFW</button
-			>
-		</div>
-		<button id="randomize-button" class="control-button" disabled={isLoading} onclick={fetchWaifuImage}
-			>Random</button
-		>
-	</div>
-</div>
-
 <style>
 	#main-content {
 		width: 100%;
-		max-width: 600px;
+		max-width: 1000px;
 		text-align: center;
 		z-index: 1;
 		display: flex;
 		flex-direction: column;
-		max-height: 100vh;
+		min-height: 100vh;
+	}
+
+	.random-zone {
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding: 20px 0;
+		box-sizing: border-box;
+		position: relative;
 	}
 
 	h1 {
 		margin-top: 0;
 		margin-bottom: 20px;
-		font-size: 2.5em;
+		font-size: clamp(1.5em, 5vw, 2.5em);
 		letter-spacing: 2px;
 		flex-shrink: 0;
 	}
@@ -476,12 +433,20 @@
 		gap: 15px;
 		flex-shrink: 0;
 		width: 100%;
+		max-width: 600px;
 		margin: 0 auto;
 	}
 
 	.control-button:disabled {
 		cursor: not-allowed;
 		opacity: 0.6;
+	}
+
+	#api-selector {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px;
 	}
 
 	#category-selector {
@@ -494,9 +459,11 @@
 		background-color: transparent;
 		color: var(--text-color);
 		border: 2px solid var(--text-color);
-		padding: 10px;
-		font-size: 1em;
+		padding: 8px 15px;
+		font-size: 0.9em;
 		border-radius: 10px;
+		cursor: pointer;
+		transition: all 0.2s ease;
 	}
 
 	.category-button.active {
@@ -508,9 +475,197 @@
 		background-color: var(--button-active-bg-color);
 		color: var(--button-active-text-color);
 		border: none;
-		padding: 15px 30px;
-		font-size: 1.2em;
+		padding: 12px 30px;
+		font-size: 1.1em;
 		font-weight: bold;
 		border-radius: 10px;
+		cursor: pointer;
+		transition: transform 0.1s active;
+	}
+
+	#randomize-button:active {
+		transform: scale(0.98);
+	}
+
+	#about-section {
+		margin: 100px auto 50px auto;
+		padding: 20px;
+		text-align: left;
+		line-height: 1.6;
+		max-width: 700px;
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	#about-section h2 {
+		text-align: center;
+		margin-top: 0;
+		margin-bottom: 20px;
+		font-size: 1.8em;
+	}
+
+	#about-section p {
+		margin-bottom: 15px;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	#about-section ul {
+		padding-left: 20px;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	#about-section li {
+		margin-bottom: 8px;
+	}
+
+	.scroll-hint {
+		position: absolute;
+		bottom: 30px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 0.8em;
+		color: rgba(255, 255, 255, 0.5);
+		animation: bounce 2s infinite;
+		cursor: pointer;
+		text-align: center;
+		z-index: 2;
+	}
+
+	@keyframes bounce {
+		0%,
+		20%,
+		50%,
+		80%,
+		100% {
+			transform: translateX(-50%) translateY(0);
+		}
+		40% {
+			transform: translateX(-50%) translateY(-10px);
+		}
+		60% {
+			transform: translateX(-50%) translateY(-5px);
+		}
 	}
 </style>
+
+<div id="main-content">
+	<div class="random-zone">
+		<h1>Waifu Randomizer</h1>
+		<WaifuViewer
+			{bgImage1Url}
+			{bgImage2Url}
+			{bgImage1Opacity}
+			{bgImage2Opacity}
+			{imageContainerHeight}
+			{isLoading}
+			{progress}
+			{errorMessage}
+			{image1Url}
+			{image2Url}
+			{image1Opacity}
+			{image2Opacity}
+			{image1Dimmed}
+			{image2Dimmed}
+			{activeImage}
+			{modalOpen}
+			{currentImageUrl}
+			{scale}
+			{translateX}
+			{translateY}
+			{isDragging}
+			onOpenModal={openModal}
+			onCloseModal={closeModal}
+			{onImageLoad}
+			{onImageError}
+			{onModalWheel}
+			{onModalMouseDown}
+			{onModalMouseUp}
+			{onModalMouseMove}
+			bind:imageContainerEl={imageContainer}
+		/>
+
+		<div id="controls">
+			<div id="api-selector">
+				<button
+					class="control-button category-button {selectedApi === 'waifu.pics' ? 'active' : ''}"
+					disabled={!isApiSupported("waifu.pics", category) || isLoading}
+					onclick={() => handleApiChange("waifu.pics")}>Waifu.pics</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'waifu.im' ? 'active' : ''}"
+					disabled={!isApiSupported("waifu.im", category) || isLoading}
+					onclick={() => handleApiChange("waifu.im")}>Waifu.im</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'nekos.best' ? 'active' : ''}"
+					disabled={!isApiSupported("nekos.best", category) || isLoading}
+					onclick={() => handleApiChange("nekos.best")}>Nekos.best</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'danbooru.anime' ? 'active' : ''}"
+					disabled={!isApiSupported("danbooru.anime", category) || isLoading}
+					onclick={() => handleApiChange("danbooru.anime")}>Danbooru Anime</button
+				>
+				<button
+					class="control-button category-button {selectedApi === 'konachan' ? 'active' : ''}"
+					disabled={!isApiSupported("konachan", category) || isLoading}
+					onclick={() => handleApiChange("konachan")}>Konachan</button
+				>
+			</div>
+			<div id="category-selector">
+				<button
+					class="control-button category-button {category === 'sfw' ? 'active' : ''}"
+					disabled={isLoading}
+					onclick={() => handleCategoryChange("sfw")}>SFW</button
+				>
+				<button
+					class="control-button category-button {category === 'nsfw' ? 'active' : ''}"
+					disabled={isLoading}
+					onclick={() => handleCategoryChange("nsfw")}>NSFW</button
+				>
+			</div>
+			<button id="randomize-button" class="control-button" disabled={isLoading} onclick={fetchWaifuImage}
+				>Random</button
+			>
+		</div>
+
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_static_element_interactions -->
+		<div class="scroll-hint" onclick={() => document.getElementById('about-section').scrollIntoView()}>
+			Scroll down to learn more
+			<br />
+			↓
+		</div>
+	</div>
+
+	<section id="about-section">
+		<h2>About This Project</h2>
+		<p>
+			<strong>Waifu Randomizer</strong> is a simple yet elegant web application designed for anime enthusiasts.
+			It allows users to discover and browse random high-quality anime and waifu images from various popular
+			API sources.
+		</p>
+
+		<p>
+			Whether you're looking for a new wallpaper or just want to see some beautiful artwork, Waifu Randomizer
+			provides a seamless experience with features like:
+		</p>
+		<ul>
+			<li>Multiple API support (Waifu.pics, Waifu.im, Nekos.best, Danbooru, Konachan).</li>
+			<li>SFW and NSFW content filtering.</li>
+			<li>Interactive full-screen viewer with zoom and pan capabilities.</li>
+			<li>Dynamic blurred background that adapts to the current image.</li>
+			<li>Custom image proxy for improved privacy and reliability.</li>
+		</ul>
+
+		<p>
+			Built with <strong>SvelteKit</strong>, this project focuses on performance
+			and a clean user interface. All images are provided by the respective APIs and are subject to their
+			terms and conditions.
+		</p>
+
+		<p style="margin-top: 30px; text-align: center; font-size: 0.9em; opacity: 0.6;">
+			Created with ❤️ by AzPepoze
+		</p>
+	</section>
+</div>
