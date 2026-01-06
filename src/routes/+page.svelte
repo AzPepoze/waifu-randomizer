@@ -112,7 +112,7 @@
 	}
 
 	async function fetchImageFromKonachan(cat) {
-		const tags = cat === "sfw" ? "rating:s" : "rating:e";
+		const tags = cat === "sfw" ? "rating:safe" : "rating:explicit";
 		const url = `https://konachan.net/post.json?limit=1&tags=order:random+${tags}`;
 		const proxiedUrl = wrapWithProxy(url);
 		const response = await fetch(proxiedUrl);
