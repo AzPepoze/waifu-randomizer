@@ -118,10 +118,10 @@
 		const response = await fetch(proxiedUrl);
 		if (!response.ok) throw new Error(`Konachan API error: ${response.status}`);
 		const data = await response.json();
-		if (!data || data.length === 0 || !data[0].file_url) {
+		if (!data || data.length === 0 || !data[0].sample_url) {
 			throw new Error("No image found from Konachan API");
 		}
-		return data[0].file_url;
+		return data[0].sample_url;
 	}
 
 	async function fetchWaifuImage() {
