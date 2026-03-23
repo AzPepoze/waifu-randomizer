@@ -21,15 +21,24 @@
 		openAbout
 	} = $props();
 
-	function downloadImage() {
+	async function downloadImage() {
 		if (!image || isLoading) return;
-		const downloadUrl = `/api/download?url=${encodeURIComponent(image)}`;
-		const a = document.createElement('a');
-		a.href = downloadUrl;
-		a.style.display = 'none';
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
+		try {
+			const response = await fetch(image);
+			if (!response.ok) throw new Error("Fetch failed");
+			const blob = await response.blob();
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `waifu-${Date.now()}.png`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Direct download failed, falling back to new tab:", error);
+			window.open(image, "_blank");
+		}
 	}
 </script>
 
