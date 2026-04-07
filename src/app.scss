@@ -1,5 +1,4 @@
 :root {
-	// Default (Light - Cute Palette)
 	--primary-bg: #ffffff;
 	--secondary-bg: #ffffff;
 	--accent-color: #ff5fac;
@@ -44,7 +43,6 @@ body {
 	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-// Global Classes
 .glass {
 	background: var(--glass-bg);
 	backdrop-filter: blur(12px);

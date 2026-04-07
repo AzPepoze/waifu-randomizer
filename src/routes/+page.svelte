@@ -1,417 +1,217 @@
 <script>
-	import { onMount, untrack } from "svelte";
+	import { onMount } from "svelte";
 	import { fade, fly } from "svelte/transition";
-	import ImageViewer from "$lib/components/ImageViewer.svelte";
-	import Sidebar from "$lib/components/Sidebar.svelte";
-	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+	import "./home.scss";
 
-	let category = $state("sfw");
-	let selectedApi = $state("waifu.pics");
-	let theme = $state("light");
-	let isLoading = $state(false);
-	let progress = $state(0);
-	let image = $state("");
-	let source = $state("");
-	let metadata = $state(null);
-	let errorMessage = $state("");
-	let showAbout = $state(false);
-	let sidebarHidden = $state(true);
-
-	let progressInterval;
-
-	const apiSupport = {
-		"waifu.pics": { sfw: true, nsfw: true },
-		"waifu.im": { sfw: true, nsfw: true },
-		"nekos.best": { sfw: true, nsfw: false },
-		"danbooru.anime": { sfw: true, nsfw: true },
-		konachan: { sfw: true, nsfw: true },
-	};
-
-	function isApiSupported(api, cat) {
-		return apiSupport[api] && apiSupport[api][cat];
-	}
-
-	function wrapWithProxy(url) {
-		if (!url) return "";
-		return `https://proxy.azpepoze.com/?url=${encodeURIComponent(url)}`;
-	}
-
-	async function fetchImageFromNekosBest() {
-		const response = await fetch("https://nekos.best/api/v2/waifu");
-		if (!response.ok)
-			throw new Error(`Nekos.best API error: ${response.status}`);
-		const data = await response.json();
-		const result = data.results[0];
-		return {
-			url: result.url,
-			source: result.source_url || result.url,
-			metadata: {
-				artist: result.artist_name,
-				artistUrl: result.artist_href,
-				source: result.source_url,
-				type: "nekos.best"
-			}
-		};
-	}
-
-	async function fetchImageFromWaifuIm(cat) {
-		const isNsfw = cat === "nsfw";
-		const url = `https://api.waifu.im/images/?included_tags=waifu&is_nsfw=${isNsfw}`;
-		const response = await fetch(url);
-		if (!response.ok)
-			throw new Error(`Waifu.im API error: ${response.status}`);
-		const data = await response.json();
-		const result = data.items[0];
-		return {
-			url: result.url,
-			source: result.source || result.url,
-			metadata: {
-				artist: result.artists?.[0]?.name,
-				artistUrl: result.artists?.[0]?.pixiv || result.artists?.[0]?.twitter,
-				tags: result.tags?.map(t => t.name),
-				dimensions: `${result.width}x${result.height}`,
-				source: result.source,
-				type: "waifu.im"
-			}
-		};
-	}
-
-	async function fetchImageFromDanbooruAnime(cat) {
-		const tags = cat === "sfw" ? "rating:safe" : "rating:explicit";
-		const endpoint = `https://danbooru.donmai.us/posts.json?limit=1&random=true&tags=${tags}`;
-		const response = await fetch(endpoint);
-		if (!response.ok)
-			throw new Error(`Danbooru API error: ${response.status}`);
-		const data = await response.json();
-		if (!data || data.length === 0 || !data[0].file_url)
-			throw new Error("No image found");
-
-		const result = data[0];
-		return {
-			url: result.file_url,
-			source: result.source || `https://danbooru.donmai.us/posts/${result.id}`,
-			metadata: {
-				tags: result.tag_string?.split(' '),
-				artist: result.tag_string_artist,
-				dimensions: `${result.image_width}x${result.image_height}`,
-				rating: result.rating,
-				source: result.source,
-				type: "danbooru"
-			}
-		};
-	}
-
-	async function fetchImageFromKonachan(cat) {
-		const tags = cat === "sfw" ? "rating:safe" : "rating:explicit";
-		const url = `https://konachan.net/post.json?limit=1&tags=order:random+${tags}`;
-		const response = await fetch(wrapWithProxy(url));
-		if (!response.ok)
-			throw new Error(`Konachan API error: ${response.status}`);
-		const data = await response.json();
-		const result = data[0];
-		return {
-			url: result.sample_url || result.file_url,
-			source: result.source || `https://konachan.net/post/show/${result.id}`,
-			metadata: {
-				tags: result.tags?.split(' '),
-				artist: result.author,
-				dimensions: `${result.width}x${result.height}`,
-				rating: result.rating,
-				source: result.source,
-				type: "konachan"
-			}
-		};
-	}
-
-	async function fetchImage() {
-		if (isLoading) return;
-		isLoading = true;
-		errorMessage = "";
-		progress = 0;
-
-		progressInterval = setInterval(() => {
-			progress += Math.random() * 10;
-			if (progress >= 90) {
-				progress = 90;
-				clearInterval(progressInterval);
-			}
-		}, 100);
-
-		try {
-			let result;
-			if (selectedApi === "waifu.pics") {
-				const response = await fetch(
-					`https://api.waifu.pics/${category}/waifu`,
-				);
-				const data = await response.json();
-				result = { url: data.url, source: "", metadata: {} };
-			} else if (selectedApi === "waifu.im") {
-				result = await fetchImageFromWaifuIm(category);
-			} else if (selectedApi === "nekos.best") {
-				result = await fetchImageFromNekosBest();
-			} else if (selectedApi === "danbooru.anime") {
-				result = await fetchImageFromDanbooruAnime(category);
-			} else if (selectedApi === "konachan") {
-				result = await fetchImageFromKonachan(category);
-			}
-
-			const { url, source: imageSource, metadata: imgMetadata } = result;
-
-			const img = new Image();
-			img.src = url;
-			img.onload = () => {
-				clearInterval(progressInterval);
-				progress = 100;
-				image = url;
-				source = imageSource;
-				metadata = imgMetadata;
-				setTimeout(() => (isLoading = false), 300);
-			};
-			img.onerror = () => {
-				throw new Error("Failed to load image resource");
-			};
-		} catch (error) {
-			console.error(error);
-			errorMessage = error.message;
-			isLoading = false;
-			clearInterval(progressInterval);
-		}
-	}
-
-	function handleKeydown(e) {
-		if (e.code === "Space" && !isLoading) {
-			e.preventDefault();
-			fetchImage();
-		}
-	}
+	let mounted = $state(false);
 
 	onMount(() => {
-		// PC/Desktop: Show sidebar by default
-		if (window.innerWidth > 1024) {
-			sidebarHidden = false;
-		}
-
-		fetchImage();
-		window.addEventListener("keydown", handleKeydown);
-		return () => window.removeEventListener("keydown", handleKeydown);
-	});
-
-	$effect(() => {
-		if (!isApiSupported(selectedApi, category)) {
-			selectedApi = "waifu.pics";
-		}
+		mounted = true;
 	});
 </script>
 
 <svelte:head>
-	<title>Waifu Randomizer</title>
+	<title>Waifu Randomizer | Discover Random Anime Art & Waifus</title>
+	<meta
+		name="description"
+		content="Discover, explore, and enjoy random high-quality anime artwork from multiple API sources. The most beautiful waifu generator on the web with SFW and NSFW modes."
+	/>
+	<meta
+		name="keywords"
+		content="waifu randomizer, random anime art, anime character generator, waifu pics, anime discovery tool, nekos best, waifu im"
+	/>
 
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://waifu-randomizer.azpepoze.com/" />
+	<meta
+		property="og:title"
+		content="Waifu Randomizer | Discover Random Anime Art"
+	/>
+	<meta
+		property="og:description"
+		content="The ultimate anime art explorer. Browse thousands of random waifus and anime illustrations from multiple APIs."
+	/>
+	<meta
+		property="og:image"
+		content="https://waifu-randomizer.azpepoze.com/web-app-manifest-512x512.png"
+	/>
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary" />
+	<meta
+		property="twitter:url"
+		content="https://waifu-randomizer.azpepoze.com/"
+	/>
+	<meta
+		property="twitter:title"
+		content="Waifu Randomizer | Discover Random Anime Art"
+	/>
+	<meta
+		property="twitter:description"
+		content="The ultimate anime art explorer. Browse thousands of random waifus and anime illustrations from multiple APIs."
+	/>
+	<meta
+		property="twitter:image"
+		content="https://waifu-randomizer.azpepoze.com/web-app-manifest-512x512.png"
+	/>
+
+	<!-- Structured Data -->
 	<script type="application/ld+json">
 		{
 			"@context": "https://schema.org",
-			"@type": "WebApplication",
+			"@type": "WebSite",
 			"name": "Waifu Randomizer",
 			"url": "https://waifu-randomizer.azpepoze.com/",
-			"description": "A web application to browse random anime and waifu images from multiple sources.",
-			"applicationCategory": "EntertainmentApplication",
-			"operatingSystem": "Any",
-			"author": {
-				"@type": "Person",
-				"name": "AzPepoze"
-			},
-			"offers": {
-				"@type": "Offer",
-				"price": "0",
-				"priceCurrency": "USD"
+			"potentialAction": {
+				"@type": "SearchAction",
+				"target": "https://waifu-randomizer.azpepoze.com/playground?q={search_term_string}",
+				"query-input": "required name=search_term_string"
 			}
 		}
 	</script>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;800&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
-<div class="app-layout">
-	<main class="content">
-		{#if !sidebarHidden}
-			<!-- svelte-ignore a11y_click_events_have_key_events -->
-			<div
-				class="mobile-sidebar-overlay"
-				role="button"
-				tabindex="0"
-				onclick={() => (sidebarHidden = true)}
-				transition:fade={{ duration: 200 }}
-			></div>
-		{/if}
+<div class="home-container">
+	{#if mounted}
+		<header class="hero">
+			<h1 class="hero-title" in:fly={{ y: 20, duration: 800 }}>
+			Social Life is Over. <br />
+			Waifus are Eternal.
+			</h1>
+			<p class="hero-subtitle" in:fly={{ y: 20, duration: 800, delay: 200 }}>
+				The #1 tool for people who haven't seen the sun in 48 hours.
+				Discover your 2D soulmate today. 0% Bankruptcy, 100% Waifu.
+			</p>
 
-		<ImageViewer {image} {isLoading} {progress} {errorMessage} />
-
-		<Sidebar
-			bind:selectedApi
-			bind:category
-			bind:theme
-			{source}
-			{image}
-			{metadata}
-			githubUrl="https://github.com/AzPepoze/waifu-randomizer"
-			{sidebarHidden}
-			toggleSidebar={() => (sidebarHidden = !sidebarHidden)}
-			{isLoading}
-			{fetchImage}
-			{isApiSupported}
-			openAbout={() => (showAbout = true)}
-		/>
-
-		{#if sidebarHidden}
-			<button
-				class="sidebar-toggle-btn"
-				onclick={() => (sidebarHidden = false)}
-				transition:fade
-			>
-				<span class="material-icons">menu</span>
-			</button>
-		{/if}
-	</main>
-
-	{#if showAbout}
-		<!-- svelte-ignore a11y_click_events_have_key_events -->
-		<!-- svelte-ignore a11y_no_static_element_interactions -->
-		<div
-			class="modal-overlay"
-			onclick={() => (showAbout = false)}
-			transition:fade={{ duration: 200 }}
-		>
-			<div
-				class="about-modal glass"
-				onclick={(e) => e.stopPropagation()}
-				transition:fly={{ y: 40, duration: 400, opacity: 0 }}
-			>
-				<span class="material-icons modal-header-icon">info</span>
-				<h2>About Waifu Randomizer</h2>
-				<p>
-					Discover high-quality anime artwork from multiple API
-					sources.
-				</p>
-				<button class="close-btn" onclick={() => (showAbout = false)}
-					>Got it!</button
+			<div class="cta-actions" in:fly={{ y: 20, duration: 800, delay: 400 }}>
+				<a
+					href="/playground"
+					class="cta-button primary"
+					aria-label="Start browsing random waifus in the playground"
 				>
+					Reject 3D, Embrace 2D
+					<span class="material-icons">rocket_launch</span>
+				</a>
+				<a
+					href="https://github.com/AzPepoze/waifu-randomizer"
+					target="_blank"
+					class="cta-button secondary"
+					aria-label="View source code on GitHub"
+				>
+					Gimme Source Code
+				</a>
 			</div>
-		</div>
+		</header>
+
+		<h2 class="sr-only">Key Features of our Anime & Waifu Randomizer</h2>
+
+		<section class="features-grid" in:fade={{ duration: 1000, delay: 600 }}>
+			<div class="feature-card">
+				<div class="icon-box" style="background: var(--p1-green)">
+					<span class="material-icons">no_meeting_room</span>
+				</div>
+				<h2>Anti-Grass Protocol</h2>
+				<p>
+					Scientifically proven to keep you inside and hydrated with gamer
+					tears. Stay indoors, stay safe.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="icon-box" style="background: var(--p3-blue)">
+					<span class="material-icons">volunteer_activism</span>
+				</div>
+				<h2>Emotional Support JPGs</h2>
+				<p>
+					Who needs real friends when you have a randomized grid of anime
+					girls? They never judge you.
+				</p>
+			</div>
+
+			<div class="feature-card">
+				<div class="icon-box" style="background: var(--p5-pink)">
+					<span class="material-icons">paid</span>
+				</div>
+				<h2>0% Gacha Rates</h2>
+				<p>
+					Experience the thrill of clicking 'Random' until your fingers
+					bleed. No gems required, No bankruptcy.
+				</p>
+			</div>
+		</section>
 	{/if}
 </div>
 
 <style lang="scss">
-	.app-layout {
+	.cta-actions {
 		display: flex;
-		flex-direction: column;
-		height: 100vh;
-		width: 100vw;
-		background-color: var(--primary-bg);
-		overflow: hidden;
-	}
-
-	.content {
-		flex: 1;
-		display: flex;
-		position: relative; /* Essential for absolute children */
-		overflow: hidden;
-
-		@media (max-width: 1024px) {
-			flex-direction: column;
-		}
-	}
-
-	.mobile-sidebar-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.3);
-		z-index: 180; /* Between ImageViewer and Sidebar */
-		cursor: pointer;
-
-		@media (min-width: 1025px) {
-			display: none;
-		}
-	}
-
-	.modal-overlay {
-		position: fixed;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.4);
-		backdrop-filter: blur(4px);
-		display: flex;
+		gap: 16px;
 		align-items: center;
 		justify-content: center;
-		z-index: 1000;
-		padding: 20px;
+
+		@media (max-width: 640px) {
+			flex-direction: column;
+			width: 100%;
+		}
 	}
 
-	.about-modal {
-		max-width: 440px;
-		width: 100%;
-		padding: 40px;
-		border-radius: 32px;
-		text-align: center;
-		position: relative;
+	.cta-button {
+		display: flex;
+		align-items: center;
+		gap: 8px;
 
-		.modal-header-icon {
-			font-size: 3rem;
-			color: var(--accent-color);
-			margin-bottom: 16px;
-		}
-
-		h2 {
-			margin-top: 0;
-			font-size: 1.75rem;
-			color: var(--text-main);
-		}
-		p {
-			line-height: 1.6;
-			color: var(--text-muted);
-			margin: 20px 0;
-		}
-
-		.close-btn {
-			width: 100%;
-			padding: 14px;
-			background: var(--accent-color);
+		&.primary {
+			background: #1e293b;
 			color: white;
-			border: none;
-			border-radius: 12px;
-			font-weight: 700;
-			cursor: pointer;
-			transition: transform 0.2s;
 			&:hover {
-				transform: scale(1.02);
+				background: #0f172a;
 			}
 		}
-	}
 
-	.sidebar-toggle-btn {
-		position: absolute;
-		top: 20px;
-		left: 20px;
-		width: 56px;
-		height: 56px;
-		border-radius: 50%;
-		background: var(--accent-color);
-		color: white;
-		border: none;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-		z-index: 150;
-		transition: all 0.2s;
-
-		@media (min-width: 1025px) {
-			display: none;
-		}
-
-		&:hover {
-			transform: scale(1.05);
-			background: var(--text-main);
+		&.secondary {
+			background: rgba(255, 255, 255, 0.5);
+			color: #1e293b;
+			&:hover {
+				background: rgba(255, 255, 255, 0.8);
+			}
 		}
 
 		.material-icons {
-			font-size: 1.75rem;
+			font-size: 1.2rem;
 		}
+	}
+
+	.icon-box {
+		width: 48px;
+		height: 48px;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 20px;
+
+		.material-icons {
+			font-size: 24px;
+			color: rgba(0, 0, 0, 0.6);
+		}
+	}
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border-width: 0;
 	}
 </style>

@@ -2,7 +2,6 @@
 	import ThemeToggle from "../ThemeToggle.svelte";
 	let { 
 		theme = $bindable(), 
-		openAbout, 
 		githubUrl = "" 
 	} = $props();
 </script>
@@ -12,6 +11,9 @@
 		<h1>Waifu Randomizer</h1>
 	</div>
 	<div class="header-actions">
+		<a href="/" class="action-btn" aria-label="Home">
+			<span class="material-icons">home</span>
+		</a>
 		{#if githubUrl}
 			<a href={githubUrl} target="_blank" class="action-btn github-link" aria-label="GitHub">
 				<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
@@ -19,9 +21,6 @@
 				</svg>
 			</a>
 		{/if}
-		<button class="action-btn" onclick={openAbout} aria-label="About">
-			<span class="material-icons">info</span>
-		</button>
 		<ThemeToggle bind:theme />
 	</div>
 </div>
@@ -38,11 +37,6 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		
-		.logo-icon {
-			font-size: 1.75rem;
-			color: var(--accent-color);
-		}
 
 		h1 {
 			margin: 0;

@@ -17,8 +17,7 @@
 		toggleSidebar,
 		isLoading = false,
 		fetchImage,
-		isApiSupported,
-		openAbout
+		isApiSupported
 	} = $props();
 
 	async function downloadImage() {
@@ -50,7 +49,6 @@
 	<div class="sidebar-inner custom-scrollbar">
 		<SidebarHeader 
 			bind:theme 
-			{openAbout} 
 			{githubUrl} 
 		/>
 
