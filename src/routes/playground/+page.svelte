@@ -7,7 +7,7 @@
 	import ThemeToggle from "$lib/components/ThemeToggle.svelte";
 
 	let category = $state("sfw");
-	let selectedApi = $state("waifu.pics");
+	let selectedApi = $state("waifu.im");
 	let theme = $state("light");
 	let isLoading = $state(false);
 	let progress = $state(0);
@@ -202,7 +202,7 @@
 
 	$effect(() => {
 		if (!isApiSupported(selectedApi, category)) {
-			selectedApi = "waifu.pics";
+			selectedApi = "waifu.im";
 		}
 	});
 </script>

@@ -7,8 +7,8 @@
 	let isOpen = $state(false);
 
 	const apis = [
-		{ id: "waifu.pics", name: "Waifu.pics", icon: "image" },
 		{ id: "waifu.im", name: "Waifu.im", icon: "favorite" },
+		{ id: "waifu.pics", name: "Waifu.pics", icon: "image" },
 		{ id: "nekos.best", name: "Nekos.best", icon: "pets" },
 		{ id: "danbooru.anime", name: "Danbooru", icon: "collections" },
 		{ id: "konachan", name: "Konachan", icon: "photo_library" },
