@@ -1,2 +1,3 @@
 User-agent: *
 Allow: /
+Sitemap: https://waifu-randomizer.azpepoze.com/sitemap.xml

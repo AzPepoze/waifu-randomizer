@@ -208,8 +208,53 @@
 </script>
 
 <svelte:head>
-	<title>Playground | Waifu Randomizer</title>
+	<title>Playground | Waifu Randomizer - Interactive Anime Art Explorer</title>
+	<meta
+		name="description"
+		content="Explore random high-quality anime artwork and waifus from Waifu.im, Waifu.pics, Nekos.best, and more. Zoom, download, and customize your anime art discovery."
+	/>
+	<meta
+		name="keywords"
+		content="waifu randomizer, anime art explorer, random anime girl, waifu generator, anime background, waifu im, waifu pics, nekos best"
+	/>
+	<link rel="canonical" href="https://waifu-randomizer.azpepoze.com/playground" />
 
+	<!-- Open Graph / Facebook -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://waifu-randomizer.azpepoze.com/playground" />
+	<meta
+		property="og:title"
+		content="Playground | Waifu Randomizer - Interactive Anime Art Explorer"
+	/>
+	<meta
+		property="og:description"
+		content="Explore random high-quality anime artwork and waifus from Waifu.im, Waifu.pics, Nekos.best, and more. Zoom, download, and customize your anime art discovery."
+	/>
+	<meta
+		property="og:image"
+		content="https://waifu-randomizer.azpepoze.com/web-app-manifest-512x512.png"
+	/>
+
+	<!-- Twitter -->
+	<meta property="twitter:card" content="summary" />
+	<meta
+		property="twitter:url"
+		content="https://waifu-randomizer.azpepoze.com/playground"
+	/>
+	<meta
+		property="twitter:title"
+		content="Playground | Waifu Randomizer - Interactive Anime Art Explorer"
+	/>
+	<meta
+		property="twitter:description"
+		content="Explore random high-quality anime artwork and waifus from Waifu.im, Waifu.pics, Nekos.best, and more. Zoom, download, and customize your anime art discovery."
+	/>
+	<meta
+		property="twitter:image"
+		content="https://waifu-randomizer.azpepoze.com/web-app-manifest-512x512.png"
+	/>
+
+	<!-- Structured Data -->
 	<script type="application/ld+json">
 		{
 			"@context": "https://schema.org",
@@ -232,6 +277,7 @@
 		{#if !sidebarHidden}
 			<!-- svelte-ignore a11y_click_events_have_key_events -->
 			<div
+				id="mobile-sidebar-overlay"
 				class="mobile-sidebar-overlay"
 				role="button"
 				tabindex="0"
@@ -259,6 +305,7 @@
 
 		{#if sidebarHidden}
 			<button
+				id="mobile-sidebar-toggle"
 				class="sidebar-toggle-btn"
 				onclick={() => (sidebarHidden = false)}
 				transition:fade

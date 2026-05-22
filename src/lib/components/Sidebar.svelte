@@ -42,7 +42,7 @@
 </script>
 
 <div class="sidebar" class:hidden={sidebarHidden}>
-	<button class="collapse-handle" onclick={toggleSidebar} aria-label="Toggle Sidebar">
+	<button id="btn-sidebar-collapse" class="collapse-handle" onclick={toggleSidebar} aria-label="Toggle Sidebar">
 		<span class="material-icons">{sidebarHidden ? 'chevron_left' : 'chevron_right'}</span>
 	</button>
 
@@ -72,6 +72,7 @@
 		<div class="footer">
 			{#if source}
 				<Button 
+					id="btn-view-source"
 					variant="secondary" 
 					href={source} 
 					class="source-btn"
@@ -82,6 +83,7 @@
 			{/if}
 			
 			<Button 
+				id="btn-download"
 				variant="secondary" 
 				disabled={isLoading || !image} 
 				onclick={downloadImage}
@@ -93,6 +95,7 @@
 			</Button>
 
 			<Button 
+				id="btn-randomize"
 				variant="primary" 
 				disabled={isLoading} 
 				onclick={fetchImage}

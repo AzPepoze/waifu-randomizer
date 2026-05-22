@@ -20,6 +20,7 @@
 		name="keywords"
 		content="waifu randomizer, random anime art, anime character generator, waifu pics, anime discovery tool, nekos best, waifu im"
 	/>
+	<link rel="canonical" href="https://waifu-randomizer.azpepoze.com/" />
 
 	<!-- Open Graph / Facebook -->
 	<meta property="og:type" content="website" />

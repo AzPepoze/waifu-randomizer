@@ -7,7 +7,8 @@
 		isLoading = false,
 		children,
 		class: className = "",
-		accentGlow = false
+		accentGlow = false,
+		id = ""
 	} = $props();
 
 	function handleMouseMove(e) {
@@ -22,6 +23,7 @@
 
 {#if href}
 	<a 
+		{id}
 		{href} 
 		target="_blank" 
 		rel="noopener noreferrer"
@@ -33,6 +35,7 @@
 	</a>
 {:else}
 	<button 
+		{id}
 		{disabled} 
 		{onclick}
 		class="btn {variant} {className}"
