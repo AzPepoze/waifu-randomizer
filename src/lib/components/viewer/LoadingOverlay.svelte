@@ -1,16 +1,38 @@
-<script>
+<script lang="ts">
 	import { fade } from "svelte/transition";
-	let { isLoading = false, progress = 0 } = $props();
+	import { motionDuration } from "#lib/motion";
+
+	let {
+		isLoading = false,
+		progress = 0,
+		overPicture = false,
+	}: { isLoading?: boolean; progress?: number; overPicture?: boolean } = $props();
+
+	const percent = $derived(Math.round(Math.min(100, Math.max(0, progress))));
 </script>
 
 {#if isLoading}
-	<div class="loading-overlay" transition:fade={{ duration: 300 }}>
-		<div class="loader-content">
-			<div class="spinner"></div>
-			<div class="progress-bar">
-				<div class="progress-fill" style="width: {progress}%"></div>
+	<div
+		class="loading-overlay"
+		class:over-picture={overPicture}
+		transition:fade={{ duration: motionDuration(300) }}
+	>
+		<div class="loader-content" role="status" aria-live="polite">
+			<div class="art" style="--cut: {100 - percent}%" aria-hidden="true">
+				<div class="ghost"></div>
+				<div class="fill"></div>
 			</div>
-			<p>Loading Art...</p>
+
+			<div class="bar-row">
+				<div class="bar" aria-hidden="true">
+					<div class="bar-fill" style="width: {percent}%"></div>
+				</div>
+				<span class="percent">{percent}%</span>
+			</div>
+
+			<p>
+				Loading art<span class="dots"><i>.</i><i>.</i><i>.</i></span>
+			</p>
 		</div>
 	</div>
 {/if}
@@ -19,12 +41,17 @@
 	.loading-overlay {
 		position: absolute;
 		inset: 0;
+		z-index: 50;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		z-index: 50;
 		background: var(--primary-bg);
-		animation: fadeIn 0.3s ease;
+	}
+
+	.loading-overlay.over-picture {
+		background: radial-gradient(circle at center, var(--veil-from), var(--veil-to));
+		backdrop-filter: blur(18px) saturate(1.1);
+		-webkit-backdrop-filter: blur(18px) saturate(1.1);
 	}
 
 	.loader-content {
@@ -32,7 +59,7 @@
 		flex-direction: column;
 		align-items: center;
 		gap: 16px;
-		
+
 		p {
 			margin: 0;
 			font-weight: 600;
@@ -40,35 +67,120 @@
 		}
 	}
 
-	.spinner {
-		width: 48px;
-		height: 48px;
-		border: 4px solid var(--border-color);
-		border-top-color: var(--accent-color);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
+	.art {
+		position: relative;
+		width: 170px;
+		height: 180px;
+		animation: breathe 2.6s ease-in-out infinite;
 	}
 
-	.progress-bar {
-		width: 200px;
-		height: 6px;
-		background: var(--border-color);
-		border-radius: 3px;
-		overflow: hidden;
-	}
-
-	.progress-fill {
-		height: 100%;
+	.ghost,
+	.fill {
+		position: absolute;
+		inset: 0;
+		mask: url("/loader/keqing-silhouette.png") center / contain no-repeat;
+		-webkit-mask: url("/loader/keqing-silhouette.png") center / contain no-repeat;
 		background: var(--accent-color);
-		transition: width 0.1s linear;
 	}
 
-	@keyframes spin {
-		to { transform: rotate(360deg); }
+	.ghost {
+		opacity: 0.18;
 	}
 
-	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
+	.fill {
+		clip-path: inset(var(--cut) 0 0 0);
+		transition: clip-path 0.4s ease-out;
+		filter: drop-shadow(0 8px 14px rgba(255, 102, 170, 0.3));
+	}
+
+	.bar-row {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.bar {
+		width: min(220px, 40vw);
+		height: 8px;
+		overflow: hidden;
+		border-radius: 999px;
+		background: var(--border-color);
+	}
+
+	.bar-fill {
+		height: 100%;
+		border-radius: 999px;
+		background: linear-gradient(
+			90deg,
+			var(--accent-color) 0%,
+			#ffc2dd 50%,
+			var(--accent-color) 100%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.4s linear infinite;
+		transition: width 0.4s ease-out;
+	}
+
+	.percent {
+		min-width: 3.2em;
+		font-variant-numeric: tabular-nums;
+		font-weight: 700;
+		color: var(--text-main);
+	}
+
+	.dots i {
+		font-style: normal;
+		opacity: 0.2;
+		animation: dot 1.2s infinite;
+
+		&:nth-child(2) {
+			animation-delay: 0.2s;
+		}
+
+		&:nth-child(3) {
+			animation-delay: 0.4s;
+		}
+	}
+
+	@keyframes breathe {
+		0%,
+		100% {
+			transform: translateY(0) scale(1, 1);
+		}
+		50% {
+			transform: translateY(-5px) scale(1.01, 0.99);
+		}
+	}
+
+	@keyframes shimmer {
+		from {
+			background-position: 200% 0;
+		}
+		to {
+			background-position: 0 0;
+		}
+	}
+
+	@keyframes dot {
+		0%,
+		60%,
+		100% {
+			opacity: 0.2;
+		}
+		30% {
+			opacity: 1;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.art,
+		.bar-fill,
+		.dots i {
+			animation: none;
+		}
+
+		.fill {
+			transition: none;
+		}
 	}
 </style>
