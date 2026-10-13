@@ -38,9 +38,15 @@ body {
 	padding: 0;
 	background-color: var(--primary-bg);
 	color: var(--text-main);
-	font-family: 'Inter', system-ui, -apple-system, sans-serif;
+	font-family:
+		"Inter",
+		system-ui,
+		-apple-system,
+		sans-serif;
 	overflow-x: hidden;
-	transition: background-color 0.3s ease, color 0.3s ease;
+	transition:
+		background-color 0.3s ease,
+		color 0.3s ease;
 }
 
 .glass {
