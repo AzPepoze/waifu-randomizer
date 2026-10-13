@@ -1,32 +1,51 @@
-<script>
-	let { viewer = null } = $props();
-	let hoveredTip = $state("");
+<script lang="ts">
+	import { tooltip } from "#lib/tooltip";
+	import type { ViewerInstance } from "#lib/viewer";
 
-	const actions = [
-		{ id: "zoom-in", icon: "zoom_in", tip: "Zoom In", run: () => viewer?.zoom(0.1) },
-		{ id: "zoom-out", icon: "zoom_out", tip: "Zoom Out", run: () => viewer?.zoom(-0.1) },
-		{ id: "one-to-one", icon: "exposure_plus_1", tip: "Actual Size", run: () => viewer?.zoomTo(1) },
+	interface ToolbarAction {
+		id: string;
+		icon: string;
+		tip: string;
+		run: () => void;
+	}
+
+	let { viewer = null }: { viewer: ViewerInstance | null } = $props();
+
+	const actions: ToolbarAction[] = [
+		{ id: "zoom-in", icon: "zoom_in", tip: "Zoom in", run: () => viewer?.zoom(0.1) },
+		{ id: "zoom-out", icon: "zoom_out", tip: "Zoom out", run: () => viewer?.zoom(-0.1) },
+		{ id: "one-to-one", icon: "exposure_plus_1", tip: "Actual size", run: () => viewer?.zoomTo(1) },
 		{ id: "reset", icon: "restart_alt", tip: "Reset", run: () => viewer?.reset() },
-		{ id: "rotate-left", icon: "rotate_left", tip: "Rotate Left", run: () => viewer?.rotate(-90) },
-		{ id: "rotate-right", icon: "rotate_right", tip: "Rotate Right", run: () => viewer?.rotate(90) },
-		{ id: "flip-horizontal", icon: "swap_horiz", tip: "Flip Horizontal", run: () => viewer?.scaleX(-viewer.imageData.scaleX || -1) },
-		{ id: "flip-vertical", icon: "swap_vert", tip: "Flip Vertical", run: () => viewer?.scaleY(-viewer.imageData.scaleY || -1) },
+		{ id: "rotate-left", icon: "rotate_left", tip: "Rotate left", run: () => viewer?.rotate(-90) },
+		{
+			id: "rotate-right",
+			icon: "rotate_right",
+			tip: "Rotate right",
+			run: () => viewer?.rotate(90),
+		},
+		{
+			id: "flip-horizontal",
+			icon: "swap_horiz",
+			tip: "Flip horizontal",
+			run: () => viewer?.scaleX(-viewer.imageData.scaleX || -1),
+		},
+		{
+			id: "flip-vertical",
+			icon: "swap_vert",
+			tip: "Flip vertical",
+			run: () => viewer?.scaleY(-viewer.imageData.scaleY || -1),
+		},
 	];
 </script>
 
 <div class="toolbar-container">
-	{#if hoveredTip}
-		<div class="tooltip glass">{hoveredTip}</div>
-	{/if}
-
 	<div class="toolbar glass">
-		{#each actions as action}
-			<button 
-				class="toolbar-btn" 
-				onclick={action.run}
-				onmouseenter={() => hoveredTip = action.tip}
-				onmouseleave={() => hoveredTip = ""}
+		{#each actions as action (action.id)}
+			<button
+				class="toolbar-btn"
 				aria-label={action.tip}
+				use:tooltip={action.tip}
+				onclick={action.run}
 			>
 				<span class="material-icons">{action.icon}</span>
 			</button>
@@ -39,23 +58,8 @@
 		position: absolute;
 		bottom: 30px;
 		left: 50%;
-		transform: translateX(-50%);
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
 		z-index: 100;
-	}
-
-	.tooltip {
-		padding: 8px 16px;
-		border-radius: 12px;
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: var(--text-main);
-		white-space: nowrap;
-		animation: fadeIn 0.2s ease;
-		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+		transform: translateX(-50%);
 	}
 
 	.toolbar {
@@ -64,29 +68,25 @@
 		gap: 6px;
 		padding: 8px;
 		border-radius: 20px;
-		background: var(--secondary-bg);
-		border: 1px solid var(--border-color);
-		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 	}
 
 	.toolbar-btn {
+		display: flex;
 		width: 42px;
 		height: 42px;
-		display: flex;
 		align-items: center;
 		justify-content: center;
 		border: none;
-		background: rgba(255, 255, 255, 0.05);
-		color: var(--text-main);
 		border-radius: 14px;
+		background: var(--soft);
+		color: var(--text-main);
 		cursor: pointer;
 		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
 		&:hover {
 			background: var(--accent-color);
-			color: white;
+			color: #ffffff;
 			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(var(--accent-color), 0.3);
 		}
 
 		&:active {
@@ -98,8 +98,22 @@
 		}
 	}
 
-	@keyframes fadeIn {
-		from { opacity: 0; transform: translateY(10px); }
-		to { opacity: 1; transform: translateY(0); }
+	@media (max-width: 600px) {
+		.toolbar-container {
+			width: max-content;
+			max-width: calc(100% - 16px);
+		}
+
+		.toolbar {
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 4px;
+			padding: 6px;
+		}
+
+		.toolbar-btn {
+			width: 34px;
+			height: 34px;
+		}
 	}
 </style>
