@@ -1,0 +1,6 @@
+# Generated or vendored output
+build
+.svelte-kit
+node_modules
+static
+bun.lock
